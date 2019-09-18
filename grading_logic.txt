@@ -1,0 +1,352 @@
+SELECT 
+
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+concat('<a target="_blank" href="%%WWWROOT%%/mod/hsuforum/discuss.php?d=',afp.discussion,'#postrating',afp.id,'">',convert(FROM_UNIXTIME(afp.modified),datetime),'</a>') as LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'adv-forum' Module,
+af.name Activity,
+'' AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/hsuforum/discuss.php?d=',afp.discussion,'#postrating',afp.id,'">Grade</a>') GradeLink
+
+FROM prefix_course_modules AS cm
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON en.courseid = cm.course
+join prefix_course c on cm.course = c.id
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+JOIN prefix_context AS ctx ON cm.course = ctx.instanceid
+JOIN prefix_role_assignments  AS ra ON ra.contextid = ctx.id
+
+JOIN prefix_hsuforum AS af ON cm.course = af.course
+left JOIN prefix_hsuforum_discussions AS afd ON af.id = afd.forum
+left JOIN prefix_hsuforum_posts AS afp ON afd.id = afp.discussion
+left JOIN prefix_user AS u ON u.id = afp.userid
+left join prefix_context as ctp on cm.id = ctp.instanceid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+left join prefix_rating r on ctp.id = r.contextid and r.itemid = afp.id
+
+WHERE cm.instance = af.id
+AND ue.userid = u.id
+AND ra.userid = u.id
+AND cm.course in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND m.name = 'hsuforum'
+AND af.gradetype = '2'
+and ctp.contextlevel = '70'
+AND r.id is null
+AND ra.roleid = '5'
+
+UNION
+
+SELECT 
+
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+concat('<a target="_blank" href="%%WWWROOT%%/mod/forum/discuss.php?d=',fp.discussion,'#postrating',fp.id,'">',convert(FROM_UNIXTIME(fp.modified),datetime),'</a>') as LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'forum' Module,
+f.name Activity,
+'' AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/forum/discuss.php?d=',fp.discussion,'#postrating',fp.id,'">Grade</a>') GradeLink
+
+FROM prefix_course_modules AS cm
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON en.courseid = cm.course
+join prefix_course c on cm.course = c.id
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+JOIN prefix_context AS ctx ON cm.course = ctx.instanceid
+JOIN prefix_role_assignments  AS ra ON ra.contextid = ctx.id
+
+JOIN prefix_forum AS f ON cm.course = f.course
+left JOIN prefix_forum_discussions AS fd ON f.id = fd.forum
+left JOIN prefix_forum_posts AS fp ON fd.id = fp.discussion
+left JOIN prefix_user AS u ON u.id = fp.userid
+left join prefix_context as ctp on cm.id = ctp.instanceid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+left join prefix_rating r on ctp.id = r.contextid and r.itemid = fp.id
+
+WHERE cm.instance = f.id
+AND ue.userid = u.id
+AND ra.userid = u.id
+AND cm.course in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND m.name = 'forum'
+AND f.assessed <> 0
+and ctp.contextlevel = 70
+and r.id is null
+AND ra.roleid = 5
+
+UNION
+
+SELECT 
+
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/quiz/report.php?id=',cm.id,'&mode=gradingstudents&usageid=',qa.uniqueid,'&slots=',(Select group_concat(qua.slot SEPARATOR '%2C') from prefix_question_attempts as qua
+WHERE qua.questionusageid = qa.uniqueid
+AND qua.behaviour = 'manualgraded'),'&grade=needsgrading','">',convert(FROM_UNIXTIME(qa.timefinish),datetime),'</a>') LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'quiz' Module,
+q.name Activity,
+'' AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/quiz/report.php?id=',cm.id,'&mode=gradingstudents&grade=needsgrading&usageid=',qa.uniqueid,'&slots=',(Select group_concat(qua.slot SEPARATOR '%2C') from prefix_question_attempts as qua
+WHERE qua.questionusageid = qa.uniqueid
+AND qua.behaviour = 'manualgraded'),'">Grade</a>') GradeLink
+
+FROM prefix_course AS c
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_course_modules AS cm ON c.id = cm.course
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON en.courseid = c.id
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+
+JOIN prefix_quiz AS q ON c.id = q.course
+JOIN prefix_quiz_attempts AS qa ON q.id = qa.quiz
+JOIN prefix_user AS u ON u.id = qa.userid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+
+WHERE cm.instance = q.id 
+AND ue.userid = u.id
+AND c.id in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+and m.name = 'quiz'
+and qa.timefinish > unix_timestamp('2019-02-01')
+and qa.timemodified >= qa.timefinish
+
+AND (qa.sumgrades is NULL OR qa.timemodified = qa.timefinish)
+
+UNION
+
+SELECT 
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/assign/view.php?rownum=0&userid=',asb.userid,'&id=',cm.id,'&action=grade','">',convert(FROM_UNIXTIME(asb.timemodified),datetime),'</a>') as LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'assign' Module,
+a.name Activity,
+case when asb.timemodified > g.timemodified
+then 'resubmitted'
+else asb.status end AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/assign/view.php?rownum=0&userid=',asb.userid,'&id=',cm.id,'&action=grade','">Grade</a>') GradeLink
+ 
+FROM prefix_course AS c
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_course_modules AS cm ON c.id = cm.course
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON c.id = en.courseid
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+JOIN prefix_grade_items gi ON c.id = gi.courseid
+JOIN prefix_grade_grades AS g on gi.id = g.itemid
+
+JOIN prefix_assign AS a ON c.id = a.course
+JOIN prefix_assign_submission AS asb ON asb.assignment = a.id
+JOIN prefix_user AS u ON u.id = asb.userid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+
+WHERE c.id in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND ue.userid = u.id
+AND m.name = 'assign'
+AND cm.instance = a.id 
+AND gi.itemmodule = 'assign'
+AND gi.iteminstance = a.id
+AND g.userid = u.id
+AND (g.finalgrade is NULL or asb.timemodified > g.timemodified)
+and asb.status <> 'new'
+
+UNION
+
+SELECT 
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+concat('<a target="_blank" href="%%WWWROOT%%/mod/journal/report.php?id=',cm.id,'">',convert(FROM_UNIXTIME(je.modified),datetime),'</a>') as LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'journal' Module,
+j.name Activity,
+'' AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/journal/report.php?id=',cm.id,'">Grade</a>') GradeLink
+
+FROM prefix_course AS c
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_course_modules AS cm ON c.id = cm.course
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON en.courseid = c.id
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+
+JOIN prefix_journal AS j ON c.id = j.course
+JOIN prefix_journal_entries AS je ON j.id = je.journal
+JOIN prefix_user AS u ON u.id = je.userid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+
+WHERE cm.instance = j.id
+AND ue.userid = u.id
+AND c.id in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND m.name = 'journal'
+AND j.grade not like '0'
+AND je.modified > je.timemarked
+
+UNION
+
+SELECT 
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+concat('<a target="_blank" href="%%WWWROOT%%/mod/lesson/essay.php?id=',cm.id,'&mode=grade&attemptid=',la.id,'">',convert(FROM_UNIXTIME(la.timeseen),datetime),'</a>') as LastSubmit,
+
+case when (ui.data is not null and ui.data <> '' and ui.data not like '%href%') 
+then concat('<a target="_blank" href="%%WWWROOT%%/blocks/configurable_reports/viewreport.php?id=109&filter_var=',u.id,'">Accommodations</a>')
+else ui.data end as OtherAlert,
+
+'lesson' Module,
+l.name Activity,
+'' AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/lesson/essay.php?id=',cm.id,'&mode=grade&attemptid=',la.id,'">Grade</a>') GradeLink
+
+FROM prefix_course AS c
+join prefix_powerschool_course_fields pcf on c.id = pcf.courseid
+JOIN prefix_course_modules AS cm ON c.id = cm.course
+join prefix_modules m on cm.module = m.id
+JOIN prefix_enrol AS en ON en.courseid = c.id
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+LEFT JOIN prefix_context AS ctx ON c.id = ctx.instanceid
+JOIN prefix_role_assignments  AS ra ON ra.contextid = ctx.id
+
+JOIN prefix_lesson AS l ON c.id = l.course
+JOIN prefix_lesson_attempts AS la ON l.id = la.lessonid
+JOIN prefix_user AS u ON u.id = la.userid
+
+left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
+
+WHERE cm.instance = l.id
+AND ue.userid = u.id
+AND ra.userid = u.id
+AND ra.roleid = '5'
+
+AND c.id in
+
+(SELECT cz.id FROM prefix_course AS cz
+join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND m.name = 'lesson'
+AND l.grade <> 0
+AND la.useranswer like '%graded%' 
+AND la.useranswer not like '%graded";i:1%'
+and (select from_unixtime(lt.lessontime) from prefix_lesson_timer lt where lt.lessonid = l.id and lt.userid = u.id and lt.completed = 1 and lt.lessontime >= la.timeseen limit 1) is not null
+
+ORDER BY last,first, Module, LastSubmit
