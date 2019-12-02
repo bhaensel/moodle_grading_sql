@@ -39,7 +39,6 @@ AND ra.userid = u.id
 AND cm.course in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
@@ -100,7 +99,6 @@ AND ra.userid = u.id
 AND cm.course in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
@@ -160,7 +158,6 @@ AND ue.userid = u.id
 AND c.id in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
@@ -217,7 +214,6 @@ left join prefix_user_info_data ui on ui.userid = u.id and ui.fieldid = '11'
 WHERE c.id in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
@@ -274,7 +270,6 @@ AND ue.userid = u.id
 AND c.id in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
@@ -331,7 +326,6 @@ AND ra.roleid = '5'
 AND c.id in
 
 (SELECT cz.id FROM prefix_course AS cz
-join prefix_powerschool_course_fields pcf on cz.id = pcf.courseid
 JOIN prefix_enrol AS enz ON cz.id = enz.courseid
 JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
 JOIN prefix_user AS uz ON uz.id = uez.userid
