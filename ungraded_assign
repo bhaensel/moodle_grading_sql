@@ -1,0 +1,47 @@
+SELECT 
+c.fullname Course,
+u.firstname First,
+u.lastname Last,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/assign/view.php?rownum=0&userid=',asb.userid,'&id=',cm.id,'&action=grade','">',convert(FROM_UNIXTIME(asb.timemodified),datetime),'</a>') as LastSubmit,
+
+'assign' Module,
+a.name Activity,
+case when asb.timemodified > g.timemodified
+then 'resubmitted'
+else asb.status end AssignStatus,
+
+concat('<a target="_blank" href="%%WWWROOT%%/mod/assign/view.php?rownum=0&userid=',asb.userid,'&id=',cm.id,'&action=grade','">Grade</a>') GradeLink
+ 
+FROM prefix_course AS c
+JOIN prefix_course_modules AS cm ON c.id = cm.course
+JOIN prefix_enrol AS en ON c.id = en.courseid
+JOIN prefix_user_enrolments AS ue ON ue.enrolid = en.id
+JOIN prefix_grade_items gi ON c.id = gi.courseid
+JOIN prefix_grade_grades AS g on gi.id = g.itemid
+JOIN prefix_assign AS a ON c.id = a.course
+JOIN prefix_assign_submission AS asb ON asb.assignment = a.id
+JOIN prefix_user AS u ON u.id = asb.userid
+
+WHERE c.id in
+
+(SELECT cz.id FROM prefix_course AS cz
+JOIN prefix_enrol AS enz ON cz.id = enz.courseid
+JOIN prefix_user_enrolments AS uez ON uez.enrolid = enz.id
+JOIN prefix_user AS uz ON uz.id = uez.userid
+JOIN prefix_context AS ctxz ON cz.id = ctxz.instanceid
+JOIN prefix_role_assignments AS raz ON raz.contextid = ctxz.id
+WHERE cz.id = c.id
+AND raz.roleid = '3'
+AND raz.userid = uz.id
+AND raz.userid = uez.userid
+AND raz.userid = '%%USERID%%')
+
+AND ue.userid = u.id
+AND cm.module = 1
+AND cm.instance = a.id 
+AND gi.itemmodule = 'assign'
+AND gi.iteminstance = a.id
+AND g.userid = u.id
+AND (g.finalgrade is NULL or asb.timemodified > g.timemodified)
+and asb.status <> 'new'
